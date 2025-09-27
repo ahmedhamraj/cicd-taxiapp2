@@ -14,7 +14,7 @@ spec:
         app:  taxi-booking
     spec:
       imagePullSecrets:
-      - name: jfrogcred
+      - name: jfrog-cred
       containers:
       - name:  taxi-booking
         image: taxi04.jfrog.io/taxi02-docker-local/taxiapp:1.0.1
