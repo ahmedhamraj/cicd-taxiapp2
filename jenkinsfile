@@ -1,3 +1,5 @@
+def registry = 'https://taxi04.jfrog.io/artifactory'
+
 pipeline {
     agent {
         node {
@@ -33,6 +35,38 @@ pipeline {
                         -Dsonar.host.url=https://sonarcloud.io \
                         -Dsonar.token=${SONAR_TOKEN}
                     """
+                }
+            }
+        }
+        stage("Jar Publish") {
+            steps {
+                script {
+                    echo '<--------------- Jar Publish Started --------------->'
+
+                    def server = Artifactory.newServer(
+                        url: registry,
+                        credentialsId: "jfrog-cred"
+                    )
+
+                    def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}"
+
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "/home/ubuntu/jenkins/workspace/taxi-booking/taxi-booking/target/(*)",
+                                "target": "taxi02-libs-release-local/",
+                                "flat": "false",
+                                "props" : "${properties}",
+                                "exclusions": [ "*.sha1", "*.md5" ]
+                            }
+                        ]
+                    }"""
+
+                    def buildInfo = server.upload(uploadSpec)
+                    buildInfo.env.collect()
+                    server.publishBuildInfo(buildInfo)
+
+                    echo '<--------------- Jar Publish Ended --------------->'
                 }
             }
         }
